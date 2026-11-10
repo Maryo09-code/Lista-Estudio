@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de estudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f8fb; --line:#cfdcec; --ink:#1f2a3a; --muted:#6b7a90;
+  --margin:#e0777d; --accent:#2f6fd6; --done:#8b97a8; --danger:#c0392b;
+  --head:"Kalam","Segoe UI",system-ui,sans-serif;
+  --body:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#161b24; --line:#2a3445; --ink:#e6ebf3; --muted:#93a1b6;
+    --margin:#c4585f; --accent:#6ea2f5; --done:#6b778a; --danger:#ef7a6c}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.5}
+main{max-width:680px;margin:0 auto;padding:32px 20px 64px;min-height:100vh;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 36px;position:relative}
+main::before{content:"";position:absolute;top:0;bottom:0;left:44px;width:2px;background:var(--margin);opacity:.6}
+header{padding-left:44px;margin-bottom:12px}
+h1{font-family:var(--head);font-size:2rem;margin:0;line-height:1.2}
+.total{color:var(--muted);font-size:.95rem;margin:4px 0 0}
+section{margin-top:36px}
+h2{margin:0;padding-left:44px;display:flex;align-items:baseline;gap:12px;min-height:36px}
+h2 small{font-size:.85rem;font-weight:400;color:var(--muted);white-space:nowrap}
+.nombre{flex:1;min-width:0;font-family:var(--head);font-size:1.35rem;font-weight:700;color:var(--ink);
+  background:transparent;border:0;border-bottom:1px dashed transparent;padding:0;line-height:36px}
+.nombre:hover,.nombre:focus{border-bottom-color:var(--muted);outline:none}
+.barra{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-left:44px;min-height:36px}
+.btn{font:inherit;font-size:.85rem;color:var(--ink);background:var(--paper);border:1px solid var(--muted);
+  border-radius:6px;padding:2px 10px;cursor:pointer;line-height:1.5}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.peligro:hover{border-color:var(--danger);color:var(--danger)}
+.btn.chico{padding:0 7px;border-color:transparent;color:var(--muted);background:transparent}
+.hint{font-size:.8rem;color:var(--muted)}
+.panel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:4px 0 4px 44px;min-height:36px;font-size:.9rem}
+.panel:empty{display:none}
+.panel input[type=text]{font:inherit;font-size:.9rem;color:var(--ink);background:var(--paper);border:1px solid var(--muted);border-radius:6px;padding:2px 8px;min-width:0;flex:1 1 140px}
+.panel .err{color:var(--danger);font-size:.85rem;flex-basis:100%}
+.pie .panel{padding-left:0}
+h2.done .nombre{color:var(--done);text-decoration:line-through;text-decoration-thickness:2px}
+h2 input[type=checkbox]{align-self:center}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:8px;min-height:36px;padding-left:44px}
+li.arrastrando{opacity:.4}
+li.vacio{color:var(--muted);font-size:.9rem}
+.asa{cursor:grab;color:var(--muted);user-select:none;flex:none;width:14px;text-align:center}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;margin:0;
+  border:2px solid var(--muted);border-radius:4px;background:var(--paper);cursor:pointer;display:grid;place-content:center}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+li a,li .txt{color:var(--ink);text-decoration:none;flex:1;min-width:0;overflow-wrap:anywhere}
+li a:hover{color:var(--accent);text-decoration:underline}
+li.done a,li.done .txt{color:var(--done);text-decoration:line-through;text-decoration-thickness:2px}
+.pie{padding-left:44px;margin-top:44px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.pie .btn.grande{font-size:1rem;padding:6px 16px;background:var(--accent);border-color:var(--accent);color:#fff}
+.pie .btn.grande:hover{opacity:.9;color:#fff}
+.nota{font-size:.8rem;color:var(--muted);margin:0;max-width:46ch}
+@media (max-width:480px){
+  main::before{left:28px} header,h2,.barra,li,.pie,.panel{padding-left:28px} .pie .panel{padding-left:0}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lista de estudio</h1>
+    <p class="total" id="total"></p>
+  </header>
+  <div id="lista"></div>
+  <div class="pie">
+    <button class="btn grande" id="nueva" type="button">Añadir asignatura</button>
+    <button class="btn" id="reset" type="button">Desmarcar todo</button>
+    <div class="panel" id="rp"></div>
+    <p class="nota">Todo se guarda solo en este navegador: los archivos no se envían a ningún servidor.</p>
+  </div>
+</main>
+
+<script>
+const KEY = "lista-estudio-v2";
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const nueva = nombre => ({ id: uid(), nombre, orden: "auto", temas: [] });
+
+let estado = null;
+try { estado = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+if (!estado || !Array.isArray(estado.asignaturas)) estado = { asignaturas: [nueva("Asignatura 1")] };
+const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch (e) {} };
+
+/* Archivos: se guardan en IndexedDB del navegador */
+const urls = {};
+let dbp = null;
+function db() {
+  if (!dbp) dbp = new Promise((ok, ko) => {
+    const r = indexedDB.open("lista-estudio", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("archivos");
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => ko(r.error);
+  });
+  return dbp;
+}
+async function idb(modo, fn) {
+  const d = await db();
+  return new Promise((ok, ko) => {
+    const t = d.transaction("archivos", modo);
+    const rq = fn(t.objectStore("archivos"));
+    t.oncomplete = () => ok(rq && rq.result);
+    t.onerror = () => ko(t.error);
+  });
+}
+
+/* Orden */
+const cmp = (a, b) => a.nombre.localeCompare(b.nombre, "es", { numeric: true, sensitivity: "base" });
+const ordenados = s => s.orden === "auto" ? [...s.temas].sort(cmp) : s.temas;
+function aManual(s) { if (s.orden === "auto") { s.temas = ordenados(s); s.orden = "manual"; } }
+function mover(s, desde, hasta) {
+  if (desde === hasta || desde < 0 || hasta < 0 || hasta >= s.temas.length) return;
+  aManual(s);
+  const [x] = s.temas.splice(desde, 1);
+  s.temas.splice(hasta, 0, x);
+  guardar(); pintar();
+}
+
+/* Acciones */
+async function subir(s, archivos) {
+  for (const f of archivos) {
+    const aid = uid();
+    try { await idb("readwrite", st => st.put(f, aid)); } catch (e) {}
+    urls[aid] = URL.createObjectURL(f);
+    s.temas.push({ id: uid(), nombre: f.name.replace(/\.[^.]+$/, ""), archivoId: aid, hecho: false });
+  }
+  guardar(); pintar();
+}
+function quitarArchivo(t) {
+  if (!t.archivoId) return;
+  idb("readwrite", st => st.delete(t.archivoId)).catch(() => {});
+  if (urls[t.archivoId]) URL.revokeObjectURL(urls[t.archivoId]);
+  delete urls[t.archivoId];
+}
+function borrarTema(s, t) {
+  quitarArchivo(t);
+  s.temas = s.temas.filter(x => x !== t);
+  guardar(); pintar();
+}
+function borrarAsignatura(s) {
+  s.temas.forEach(quitarArchivo);
+  estado.asignaturas = estado.asignaturas.filter(x => x !== s);
+  guardar(); pintar();
+}
+
+/* Pintado */
+function el(tag, props, ...hijos) {
+  const e = document.createElement(tag);
+  for (const k in props || {}) {
+    if (k === "class") e.className = props[k];
+    else if (k in e) e[k] = props[k];
+    else e.setAttribute(k, props[k]);
+  }
+  hijos.forEach(h => e.append(h));
+  return e;
+}
+const boton = (texto, fn, clase, etiqueta) => {
+  const b = el("button", { type: "button", class: "btn " + (clase || ""), textContent: texto });
+  if (etiqueta) b.setAttribute("aria-label", etiqueta);
+  b.addEventListener("click", fn);
+  return b;
+};
+function total() {
+  let n = 0, h = 0;
+  estado.asignaturas.forEach(s => { n += s.temas.length; h += s.temas.filter(t => t.hecho).length; });
+  $("total").textContent = h + " de " + n + " temas estudiados";
+}
+
+function abrirPanel(sec, barra, tipo, contenido) {
+  const previo = sec.querySelector(".panel");
+  if (previo) {
+    const mismo = previo.dataset.tipo === tipo;
+    previo.remove();
+    if (mismo) return null;
+  }
+  const p = el("div", { class: "panel" }, ...contenido);
+  p.dataset.tipo = tipo;
+  barra.after(p);
+  return p;
+}
+function panelEnlace(s, sec, barra) {
+  const nombre = el("input", { type: "text", placeholder: "Nombre del tema", maxLength: 100 });
+  const url = el("input", { type: "text", placeholder: "Enlace (https://…)" });
+  const err = el("span", { class: "err", hidden: true });
+  const mostrar = m => { err.textContent = m; err.hidden = false; };
+  const anadir = () => {
+    const n = nombre.value.trim();
+    let u = null;
+    try { u = new URL(url.value.trim()); } catch (e) {}
+    if (!n) return mostrar("Escribe el nombre del tema.");
+    if (!u || !/^https?:$/.test(u.protocol)) return mostrar("Pega un enlace válido que empiece por http o https.");
+    s.temas.push({ id: uid(), nombre: n, url: u.href, hecho: false });
+    guardar(); pintar();
+  };
+  const p = abrirPanel(sec, barra, "enlace", [nombre, url,
+    boton("Añadir", anadir), boton("Cancelar", () => p.remove()), err]);
+  if (!p) return;
+  [nombre, url].forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") anadir(); }));
+  nombre.focus();
+}
+function panelEliminar(s, sec, barra) {
+  const p = abrirPanel(sec, barra, "eliminar", [
+    el("span", { textContent: "¿Eliminar “" + s.nombre + "” y todos sus temas?" }),
+    boton("Sí, eliminar", () => borrarAsignatura(s), "peligro"),
+    boton("Cancelar", () => p.remove())]);
+}
+
+let arrastrado = null;
+function pintar() {
+  const cont = $("lista");
+  cont.replaceChildren();
+  estado.asignaturas.forEach(s => {
+    const sec = el("section");
+    const nombre = el("input", { type: "text", class: "nombre", value: s.nombre, maxLength: 80 });
+    nombre.setAttribute("aria-label", "Nombre de la asignatura");
+    nombre.addEventListener("input", () => { s.nombre = nombre.value; guardar(); });
+    const cuenta = el("small");
+    const contar = () => { cuenta.textContent = s.temas.filter(t => t.hecho).length + " de " + s.temas.length; };
+    contar();
+    const cbA = el("input", { type: "checkbox", checked: !!s.hecha });
+    cbA.setAttribute("aria-label", "Marcar la asignatura como estudiada");
+    const h2 = el("h2", { class: s.hecha ? "done" : "" }, cbA, nombre, cuenta);
+    cbA.addEventListener("change", () => { s.hecha = cbA.checked; h2.classList.toggle("done", s.hecha); guardar(); });
+    sec.append(h2);
+
+    const fichero = el("input", { type: "file", multiple: true, hidden: true });
+    fichero.addEventListener("change", () => { if (fichero.files.length) subir(s, [...fichero.files]); });
+    const barra = el("div", { class: "barra" }, fichero,
+      boton("Subir archivos", () => fichero.click()),
+      boton("Añadir enlace", () => panelEnlace(s, sec, barra)));
+    if (s.orden === "auto") barra.append(el("span", { class: "hint", textContent: "Orden automático. Arrastra un tema para ordenar a mano." }));
+    else barra.append(boton("Volver al orden automático", () => { s.orden = "auto"; guardar(); pintar(); }));
+    barra.append(boton("Eliminar asignatura", () => panelEliminar(s, sec, barra), "peligro"));
+    sec.append(barra);
+
+    const ul = el("ul");
+    const lista = ordenados(s);
+    if (!lista.length) ul.append(el("li", { class: "vacio", textContent: "Sin temas todavía. Sube los archivos de esta asignatura." }));
+    lista.forEach((t, i) => {
+      const li = el("li", { draggable: true, class: t.hecho ? "done" : "" });
+      const cb = el("input", { type: "checkbox", checked: !!t.hecho });
+      cb.setAttribute("aria-label", "Marcar como estudiado: " + t.nombre);
+      cb.addEventListener("change", () => {
+        t.hecho = cb.checked;
+        li.classList.toggle("done", t.hecho);
+        guardar(); contar(); total();
+      });
+      const href = t.archivoId ? urls[t.archivoId] : t.url;
+      let txt;
+      if (href) txt = el("a", { href, target: "_blank", rel: "noopener noreferrer", textContent: t.nombre });
+      else txt = el("span", { class: "txt", textContent: t.nombre + " (archivo no disponible)" });
+      li.append(el("span", { class: "asa", textContent: "⋮", title: "Arrastrar para ordenar" }), cb, txt,
+        boton("↑", () => mover(s, i, i - 1), "chico", "Subir tema"),
+        boton("↓", () => mover(s, i, i + 1), "chico", "Bajar tema"),
+        boton("✕", () => borrarTema(s, t), "chico peligro", "Eliminar tema"));
+      li.addEventListener("dragstart", e => { arrastrado = { s, i }; li.classList.add("arrastrando"); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", t.id); });
+      li.addEventListener("dragend", () => li.classList.remove("arrastrando"));
+      li.addEventListener("dragover", e => { if (arrastrado && arrastrado.s === s) e.preventDefault(); });
+      li.addEventListener("drop", e => { e.preventDefault(); if (arrastrado && arrastrado.s === s) mover(s, arrastrado.i, i); arrastrado = null; });
+      ul.append(li);
+    });
+    sec.append(ul);
+    cont.append(sec);
+  });
+  total();
+}
+
+$("nueva").addEventListener("click", () => {
+  estado.asignaturas.push(nueva("Asignatura " + (estado.asignaturas.length + 1)));
+  guardar(); pintar();
+  const n = document.querySelectorAll(".nombre");
+  n[n.length - 1].focus(); n[n.length - 1].select();
+});
+$("reset").addEventListener("click", () => {
+  const rp = $("rp");
+  if (rp.children.length) { rp.replaceChildren(); return; }
+  rp.append(el("span", { textContent: "¿Desmarcar todos los temas y asignaturas?" }),
+    boton("Sí, desmarcar", () => {
+      estado.asignaturas.forEach(a => { a.hecha = false; a.temas.forEach(t => { t.hecho = false; }); });
+      guardar(); pintar(); rp.replaceChildren();
+    }, "peligro"),
+    boton("Cancelar", () => rp.replaceChildren()));
+});
+
+(async function iniciar() {
+  try {
+    for (const s of estado.asignaturas) for (const t of s.temas) if (t.archivoId) {
+      const blob = await idb("readonly", st => st.get(t.archivoId));
+      if (blob) urls[t.archivoId] = URL.createObjectURL(blob);
+    }
+  } catch (e) {}
+  pintar();
+})();
+</script>
+</body>
+</html>
